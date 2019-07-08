@@ -1,11 +1,6 @@
 import cv2
 import numpy as np
 import math
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-
-
-URL = 'http://thecolorapi.com/id'
 
 cap = cv2.VideoCapture(0)
 frame_write_interval = 0

@@ -1,8 +1,6 @@
 import os
-import random
 from datetime import date
 import requests
-import cv2
 import decimal
 
 from gtts import gTTS
@@ -10,6 +8,8 @@ from gtts import gTTS
 # GET http://thecolorapi.com/id?hex=0047AB&rgb=0,71,171&hsl=215,100%,34%&cmyk=100,58,0,33&format=html
 URL = 'http://thecolorapi.com/id'
 filename = 'test.txt'
+
+speakcount = 0
 
 while(1):
     file = open(filename, 'r', encoding="utf8")
@@ -32,8 +32,15 @@ while(1):
                 print(color_text)
 
                 tts = gTTS(text=color_text, lang='en')
-                t = date.today()
-                m_mpfile = ("tts-%s-%s-%d-%d-%d.mp3" % (t, color_text, rgb[0], rgb[1], rgb[2]))
+                # t = date.today()
+                # m_mpfile = ("tts-%s-%s-%d-%d-%d.mp3" % (t, color_text, rgb[0], rgb[1], rgb[2]))
+
+                # 같은 파일에다가 쓰고 실행하고 하니까 실행하는 도중에 작성되는 경우도 있어서 일단은 막는용도
+                speakcount += 1
+                if speakcount == 5 : 
+                    speakcount = 0
+
+                m_mpfile = ("tts-%d.mp3" % (speakcount))
                 tts.save(m_mpfile)
                 os.system("start %s" % m_mpfile)
 
@@ -44,8 +51,3 @@ while(1):
                 print('wrong data')
         else :
             print('wrong data')
-
-
-    k = cv2.waitKey(5) & 0xFF
-    if k == 27:
-        break
