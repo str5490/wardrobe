@@ -13,14 +13,10 @@ def change_TrackbarValue(l_h, u_h, l_s, u_s, l_v, u_v):
 
 def nothing(x):
     pass
-'''
+
 (l_skinh, u_skinh) = (0, 20)
 (l_skins, u_skins) = (105, 255)
 (l_skinv, u_skinv) = (40, 220)
-'''
-(l_skinh, u_skinh) = (0, 0)
-(l_skins, u_skins) = (0, 0)
-(l_skinv, u_skinv) = (0, 0)
 
 cv2.namedWindow('skin_hsv')
 cv2.createTrackbar('lower_h','skin_hsv',0,255,nothing)
@@ -73,7 +69,6 @@ def mouse_callback(event, x, y, flags, param):
                 l_skinv = hsv[2]
             else:
                 u_skinv = hsv[2]
-
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
 cap = cv2.VideoCapture(0)
@@ -87,27 +82,27 @@ while(1):
           #therefore this try error statement
 
         ret, frame = cap.read()
-        frame = cv2.flip(frame,1)
+        frame = cv2.flip(frame, 1)
+        raw_frame = frame.copy()
         #cv2.dilate에서 사용 할 커널의 크기 - 1값이 되는 외곽의 픽셀크기를 설정
-        kernel = np.ones((3,3),np.uint8) 
+        kernel = np.ones((3, 3), np.uint8) 
 
         #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
-        roi=frame[100:400, 100:400]
+        roi = frame[100:400, 100:400]
 
         #roi 사각형의 프레임을 그려준다.
-        cv2.rectangle(frame,(100,100),(400,400),(0,255,0),0)
+        cv2.rectangle(frame, (100, 100), (400, 400), (0, 255, 0), 0)
 
         #roi 범위 안의 색영역추출
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-        l_skinh=cv2.getTrackbarPos('lower_h','skin_hsv')
-        u_skinh=cv2.getTrackbarPos('upper_h','skin_hsv')
-        l_skins=cv2.getTrackbarPos('lower_s','skin_hsv')
-        u_skins=cv2.getTrackbarPos('upper_s','skin_hsv')
-        l_skinv=cv2.getTrackbarPos('lower_v','skin_hsv')
-        u_skinv=cv2.getTrackbarPos('upper_v','skin_hsv')
-
     # 추출한 색영역과 비교할 범위 (살색) [색범위,채도,명암]
+        l_skinh=cv2.getTrackbarPos('lower_h', 'skin_hsv')
+        u_skinh=cv2.getTrackbarPos('upper_h', 'skin_hsv')
+        l_skins=cv2.getTrackbarPos('lower_s', 'skin_hsv')
+        u_skins=cv2.getTrackbarPos('upper_s', 'skin_hsv')
+        l_skinv=cv2.getTrackbarPos('lower_v', 'skin_hsv')
+        u_skinv=cv2.getTrackbarPos('upper_v', 'skin_hsv')
 
         lower_skin = np.array([l_skinh, l_skins, l_skinv], dtype=np.uint8)
         upper_skin = np.array([u_skinh, u_skins, u_skinv], dtype=np.uint8)
@@ -171,7 +166,7 @@ while(1):
             angle = math.acos((b**2 + c**2 - a**2)/(2 * b * c)) * 57
             
             # 각도와 깊이를 확인해 far end start 각점에 표시
-            if angle <= 90 and d > 30:
+            if angle <= 90 and d > 40:
                 l += 1
                 cv2.circle(roi, far, 6, [255, 0, 0], -1)
                 cv2.circle(roi, end, 6, [255, 0, 0], 1)
@@ -187,6 +182,7 @@ while(1):
         cv2.circle(roi, (topmost[0], topmost[1] - 2), 4, [0, 100, 100], -1)
 
         l += 1
+        detect_pointing_finger = False
         #display corresponding gestures which are in their ranges
         font = cv2.FONT_HERSHEY_SIMPLEX
         if l == 1:
@@ -196,10 +192,15 @@ while(1):
                 if arearatio < 12:
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
-                    frame_write_interval += 1
+                    detect_pointing_finger = True
                     cv2.putText(frame, '1', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         else :
             cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
+
+        if detect_pointing_finger == True:
+            frame_write_interval += 1
+        else:
+            frame_write_interval = 0
 
         cv2.imshow('mask', mask)
         cv2.imshow('frame', frame)
@@ -207,6 +208,8 @@ while(1):
         #file write 추가
         if frame_write_interval == 20:
             frame_write_interval = 0
+            #이미지 저장 추가
+            cv2.imwrite('test.png', raw_frame[100:400, 100:400])
             text_rgb = ','.join(map(str, px))
             text_rgb += ',1,\n'
             print(text_rgb)
