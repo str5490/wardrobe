@@ -115,7 +115,7 @@ while(1):
         #roi 범위 안의 색영역추출
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-    # 추출한 색영역과 비교할 범위 (살색) [색범위,채도,명암]
+        # 추출한 색영역과 비교할 범위 (살색) [색범위,채도,명암]
         l_skinh=cv2.getTrackbarPos('lower_h', 'skin_hsv')
         u_skinh=cv2.getTrackbarPos('upper_h', 'skin_hsv')
         l_skins=cv2.getTrackbarPos('lower_s', 'skin_hsv')
@@ -126,45 +126,45 @@ while(1):
         lower_skin = np.array([l_skinh, l_skins, l_skinv], dtype=np.uint8)
         upper_skin = np.array([u_skinh, u_skins, u_skinv], dtype=np.uint8)
 
-     # 추출한 색영역 hsv가 살색 범위만 남긴다.
+        # 추출한 색영역 hsv가 살색 범위만 남긴다.
         mask = cv2.inRange(hsv, lower_skin, upper_skin)
         cv2.imshow("Skin color detection", mask)
 
-    #외곽의 픽셀을 1(흰색)으로 채워 노이즈제거 interations -반복횟수
+        #외곽의 픽셀을 1(흰색)으로 채워 노이즈제거 interations -반복횟수
         kernel = np.ones((3, 3), np.uint8) 
         mask = cv2.dilate(mask, kernel, iterations = 5)
 
-    #cv2.GaussianBlur 중심에 있는 픽셀에 높은 가중치 -노이즈제거 
+        #cv2.GaussianBlur 중심에 있는 픽셀에 높은 가중치 -노이즈제거 
 
-    #cv2.findContours 경계선 찾기 cv2.RETR_TREE 경계선 찾으며 계층관계 구성 cv2.CHAIN_APPROX_SIMPLE 경계선을 그릴 수 있는 point만 저장
+        #cv2.findContours 경계선 찾기 cv2.RETR_TREE 경계선 찾으며 계층관계 구성 cv2.CHAIN_APPROX_SIMPLE 경계선을 그릴 수 있는 point만 저장
         contours,hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-   #경계선 중 최대값 찾기
+        #경계선 중 최대값 찾기
         cnt = max(contours, key = lambda x: cv2.contourArea(x))
 
-    #엡실론 값에 따라 컨투어 포인트의 값을 줄인다. 각지게 만듬 Douglas-Peucker 알고리즘 이용
+        #엡실론 값에 따라 컨투어 포인트의 값을 줄인다. 각지게 만듬 Douglas-Peucker 알고리즘 이용
         epsilon = 0.0005 * cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt,epsilon, True)
         M = cv2.moments(cnt)
         # print(M.items())
-    #외곽의 점을 잇는 컨벡스 홀
+        #외곽의 점을 잇는 컨벡스 홀
         hull = cv2.convexHull(cnt)
 
-     #컨벡스홀 면적과 외곽면적 정의
+        #컨벡스홀 면적과 외곽면적 정의
         areahull = cv2.contourArea(hull)
         areacnt = cv2.contourArea(cnt)
 
-    #컨벡스홀-외곽면적의 비율
+        #컨벡스홀-외곽면적의 비율
         arearatio = ((areahull - areacnt) / areacnt)*100
 
-    #cv2.convexityDefects 컨벡스 결함
+        #cv2.convexityDefects 컨벡스 결함
         hull = cv2.convexHull(approx, returnPoints = False)
         defects = cv2.convexityDefects(approx, hull)
 
-    # 깊이의 개수
+        # 깊이의 개수
         l = 0
 
-    #시작점, 끝점, 결점을 정한다
+        #시작점, 끝점, 결점을 정한다
         for i in range(defects.shape[0]): #defects 컨벡스 결함의 수 만큼 반복
             s, e, f, d = defects[i,0]
             start = tuple(approx[s][0])

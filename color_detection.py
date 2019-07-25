@@ -1,15 +1,13 @@
 import os
-from datetime import date
 import requests
 import decimal
 
 from gtts import gTTS
+#from playsound import playsound
 
 # GET http://thecolorapi.com/id?hex=0047AB&rgb=0,71,171&hsl=215,100%,34%&cmyk=100,58,0,33&format=html
 URL = 'http://thecolorapi.com/id'
 filename = 'test.txt'
-
-speakcount = 0
 
 while(1):
     file = open(filename, 'r', encoding="utf8")
@@ -32,16 +30,18 @@ while(1):
                 print(color_text)
 
                 tts = gTTS(text=color_text, lang='en')
-                # t = date.today()
-                # m_mpfile = ("tts-%s-%s-%d-%d-%d.mp3" % (t, color_text, rgb[0], rgb[1], rgb[2]))
-
-                # 같은 파일에다가 쓰고 실행하고 하니까 실행하는 도중에 작성되는 경우도 있어서 일단은 막는용도
-                speakcount += 1
-                if speakcount == 5 : 
-                    speakcount = 0
-
-                m_mpfile = ("tts-%d.mp3" % (speakcount))
+                # player 실행중이면 종료하고 다시 실행시키기 
+                # sound_player_name을 기본 프로그램 설정한걸로 이름 바꾸면 됨
+                # 실행중엔 데이터 작성권한 없어서 추가됨
+                # playsound(mp3) 사용하면 편하긴 한데 라이브러리 다운받아야함
+                try:
+                    sound_player_name = "wmplayer.exe"
+                    os.system("taskkill /f /im %s" % sound_player_name)
+                except:
+                    pass
+                m_mpfile = "color.mp3"
                 tts.save(m_mpfile)
+                #playsound(m_mpfile)
                 os.system("start %s" % m_mpfile)
 
                 file = open('test.txt', 'w', encoding='utf8')
