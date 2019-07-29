@@ -3,13 +3,16 @@ import cv2
 import enum
 import numpy as np
 
+#===============================================================#
+# color reference                                               #
+#===============================================================#
 class Colors_Name(enum.Enum):
 	# 하양 베이지 라임 아이보리 개나리 노랑 살구 옥 은 귤
     white = 0
     beige = enum.auto()
     lime = enum.auto()
     ivory = enum.auto()
-    #forsythia = enum.auto()
+    forsythia = enum.auto()
     yellow = enum.auto()
     apricot = enum.auto()
     turquoise = enum.auto()
@@ -61,7 +64,7 @@ colors_rgb[Colors_Name.white.value] = [255, 255, 255]
 colors_rgb[Colors_Name.beige.value] = [245, 245, 220]
 colors_rgb[Colors_Name.lime.value] = [191, 255, 0]
 colors_rgb[Colors_Name.ivory.value] = [236, 230, 204]
-#colors_rgb[Colors_Name.forsythia.value] = [236, 230, 0]
+colors_rgb[Colors_Name.forsythia.value] = [236, 230, 0]
 colors_rgb[Colors_Name.yellow.value] = [247, 212, 0]
 colors_rgb[Colors_Name.apricot.value] = [251, 206, 177]
 colors_rgb[Colors_Name.turquoise.value] = [131, 220, 183]
@@ -100,22 +103,21 @@ colors_rgb[Colors_Name.amethyst.value] = [102, 0, 153]
 colors_rgb[Colors_Name.anburn.value] = [128, 0, 0]
 colors_rgb[Colors_Name.navy.value] = [0, 0, 128]
 colors_rgb[Colors_Name.black.value] = [0, 0, 0]
-
+#===============================================================#
 
 color_diff = np.zeros([color_num], dtype = int)
-color_target = np.zeros([3], dtype = int)
-
 def mouse_callback(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         color_raw = img[y, x]
         one_pixel = np.uint8([[color_raw]])
         color_target = cv2.cvtColor(one_pixel, cv2.COLOR_BGR2RGB)
-        print(color_target[0][0])
+        rgb = color_target[0][0]
+        print(color_target)
 
         for i in Colors_Name:
-            color_diff[i.value] = abs(color_target[0][0][0] - colors_rgb[i.value][0])
-            color_diff[i.value] += abs(color_target[0][0][1] - colors_rgb[i.value][1])
-            color_diff[i.value] += abs(color_target[0][0][2] - colors_rgb[i.value][2])
+            color_diff[i.value] = abs(rgb[0] - colors_rgb[i.value][0])
+            color_diff[i.value] += abs(rgb[1] - colors_rgb[i.value][1])
+            color_diff[i.value] += abs(rgb[2] - colors_rgb[i.value][2])
         color = color_diff.argmin()
 
         m_mpfile = Colors_Name(color).name + ".mp3"

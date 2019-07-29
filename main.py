@@ -19,6 +19,8 @@ def nothing(x):
 (l_skinv, u_skinv) = (40, 220)
 
 cv2.namedWindow('skin_hsv')
+cv2.resizeWindow('skin_hsv', 600,300)
+
 cv2.createTrackbar('lower_h','skin_hsv',0,255,nothing)
 cv2.createTrackbar('upper_h','skin_hsv',0,255,nothing)
 cv2.createTrackbar('lower_s','skin_hsv',0,255,nothing)
@@ -72,14 +74,12 @@ def mouse_callback(event, x, y, flags, param):
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
 cap = cv2.VideoCapture(0)
-#fgbg  = cv2.createBackgroundSubtractorMOG2(varThreshold=100)
 
 frame_write_interval = 0
 
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
 
-background_capture = 0
 exist_brackground = False
 dummy_frame = True
 no_act_count = 0
