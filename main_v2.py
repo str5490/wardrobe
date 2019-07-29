@@ -97,36 +97,30 @@ while(1):
             continue
 
         frameDelta = cv2.absdiff(frame, raw_frame)
+        raw_frame = frame.copy()
         gray = cv2.cvtColor(frameDelta, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (17, 17), 0)
         thresh = cv2.threshold(gray, 4, 255, cv2.THRESH_BINARY)[1]
-        cv2.imshow('gray', gray)
-        cv2.imshow('thresh', thresh)
 
         sum_all_bit = np.sum(thresh)
-        if sum_all_bit < 100000:
+        if sum_all_bit < 50000:
             no_act_count += 1
+            if no_act_count >= 10:
+                no_act_count = 0
+                bg_frame = raw_frame
+                cv2.imshow('bg_frame', bg_frame)
+                exist_brackground = True
+            print (no_act_count)
         else:
             no_act_count = 0
-        if no_act_count != 0:
-            print (no_act_count)
-
-        raw_frame = frame.copy()
-
-        if no_act_count >= 10:
-            no_act_count = 0
-            bg_frame = frame
-            cv2.imshow('bg_frame', bg_frame)
-            exist_brackground = True
 
         if exist_brackground == False:
             continue
 
         frameDelta = cv2.absdiff(frame, bg_frame)
-
         gray = cv2.cvtColor(frameDelta, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (17,17), 0)
-        thresh = cv2.threshold(gray, 16, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)[1]
         
         # https://webnautes.tistory.com/1257 참조
         kernel = np.ones((5,5), np.uint8) 
@@ -134,7 +128,6 @@ while(1):
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         bg_sub_frame = cv2.bitwise_and(frame, frame, mask=thresh)
         
-
         #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
         #roi = frame[100:400, 100:400]
         roi = bg_sub_frame[100:400, 100:400]
