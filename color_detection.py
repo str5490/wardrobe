@@ -105,20 +105,23 @@ colors_rgb[Colors_Name.anburn.value] = [128, 0, 0]
 colors_rgb[Colors_Name.navy.value] = [0, 0, 128]
 colors_rgb[Colors_Name.black.value] = [0, 0, 0]
 #===============================================================#
+
 filename = 'test.txt'
 color_diff = np.zeros([color_num], dtype = int)
-while(1):
+
+while True:
     file = open(filename, 'r', encoding="utf8")
     text_rgb = file.read()
     file.close()
 
     split_data = text_rgb.split(',')
+	# 유효 데이터인지 확인하고 동작하기
     if len(split_data) >= 4 and split_data[3].isdigit() == 1 and decimal.Decimal(split_data[3]) == 1:
         if split_data[0].isdigit() == 1 and split_data[1].isdigit() == 1 and split_data[2].isdigit() == 1 :
             rgb = list(map(int, split_data[0:3]))
             if (rgb[0] >= 0 and rgb[0] <= 255 and
-                rgb[1] >= 0 and rgb[0] <= 255 and
-                rgb[2] >= 0 and rgb[0] <= 255):
+                rgb[1] >= 0 and rgb[1] <= 255 and
+                rgb[2] >= 0 and rgb[2] <= 255):
                 print(rgb)
 
                 for i in Colors_Name:
@@ -129,10 +132,12 @@ while(1):
 
                 m_mpfile = Colors_Name(color).name + ".mp3"
                 print(m_mpfile)
-                os.chdir('C:/Users/str92/OneDrive/문서/git/wardrobe/voice/colors')
+                os.chdir('voice')
+                os.chdir('colors')
                 os.system("start %s" % m_mpfile)
-
-                os.chdir('C:/Users/str92/OneDrive/문서/git/wardrobe')
+ 
+                os.chdir('..')
+                os.chdir('..')
                 file = open(filename, 'w', encoding="utf8")
                 file.write('0,0,0,0,\n')
                 file.close()

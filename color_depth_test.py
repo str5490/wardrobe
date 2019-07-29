@@ -121,8 +121,12 @@ def mouse_callback(event, x, y, flags, param):
         m_mpfile = Colors_Name(color).name + ".mp3"
         print(m_mpfile)
 
-        os.chdir('C:/Users/str92/OneDrive/문서/git/wardrobe/voice/colors')
+        os.chdir('voice')
+        os.chdir('colors')
         os.system("start %s" % m_mpfile)
+ 
+        os.chdir('..')
+        os.chdir('..')
 
 img = cv2.imread('color_test_img.jpg', cv2.IMREAD_COLOR)
 cv2.imshow('ImageDisplay', img)

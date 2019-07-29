@@ -84,7 +84,7 @@ exist_brackground = False
 dummy_frame = True
 no_act_count = 0
 
-while(1):
+while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
 
@@ -100,15 +100,12 @@ while(1):
         raw_frame = frame.copy()
         gray = cv2.cvtColor(frameDelta, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (17, 17), 0)
-        thresh = cv2.threshold(gray, 15, 255, cv2.THRESH_BINARY)[1]
-        cv2.imshow('thresh', thresh)
-        cv2.imshow('frame', frame)
-        cv2.imshow('gray', gray)
+        thresh = cv2.threshold(gray, 9, 255, cv2.THRESH_BINARY)[1]
 
         sum_all_bit = np.sum(thresh)
         if sum_all_bit < 100:
             no_act_count += 1
-            if no_act_count >= 100:
+            if no_act_count >= 50:
                 no_act_count = 0
                 bg_frame = raw_frame
                 cv2.imshow('bg_frame', bg_frame)
