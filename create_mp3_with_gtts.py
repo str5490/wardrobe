@@ -1,8 +1,9 @@
 from gtts import gTTS
 import os
 
-text = "빨간색"
+file_name = "white"
+test = "하양색"
 tts = gTTS(text=text, lang='ko')
-m_mpfile = text + ".mp3"
+m_mpfile = file_name + ".mp3"
 tts.save(m_mpfile)
 os.system("start %s" % m_mpfile)
