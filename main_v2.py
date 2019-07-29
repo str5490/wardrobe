@@ -79,30 +79,61 @@ frame_write_interval = 0
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
 
-background_capture = False;
+background_capture = 0
+exist_brackground = False
+dummy_frame = True
+no_act_count = 0
+
 while(1):
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
 
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
+
+        if dummy_frame == True:
+            dummy_frame = False
+            raw_frame = frame.copy()
+            continue
+
+        frameDelta = cv2.absdiff(frame, raw_frame)
+        gray = cv2.cvtColor(frameDelta, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (17, 17), 0)
+        thresh = cv2.threshold(gray, 4, 255, cv2.THRESH_BINARY)[1]
+        cv2.imshow('gray', gray)
+        cv2.imshow('thresh', thresh)
+
+        sum_all_bit = np.sum(thresh)
+        if sum_all_bit < 100000:
+            no_act_count += 1
+        else:
+            no_act_count = 0
+        if no_act_count != 0:
+            print (no_act_count)
+
         raw_frame = frame.copy()
 
-        if background_capture == False:
-            bg_frame = frame;
-            background_capture = True
+        if no_act_count >= 10:
+            no_act_count = 0
+            bg_frame = frame
+            cv2.imshow('bg_frame', bg_frame)
+            exist_brackground = True
+
+        if exist_brackground == False:
             continue
+
         frameDelta = cv2.absdiff(frame, bg_frame)
 
         gray = cv2.cvtColor(frameDelta, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (21, 21), 0)
+        gray = cv2.GaussianBlur(gray, (17,17), 0)
         thresh = cv2.threshold(gray, 16, 255, cv2.THRESH_BINARY)[1]
         
         # https://webnautes.tistory.com/1257 참조
-        kernel = np.ones((7, 7), np.uint8) 
+        kernel = np.ones((5,5), np.uint8) 
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         bg_sub_frame = cv2.bitwise_and(frame, frame, mask=thresh)
+        
 
         #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
         #roi = frame[100:400, 100:400]
