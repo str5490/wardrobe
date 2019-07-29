@@ -1,4 +1,5 @@
-﻿import cv2
+﻿import os
+import cv2
 import enum
 import numpy as np
 
@@ -11,7 +12,7 @@ class Colors_Name(enum.Enum):
     #forsythia = enum.auto()
     yellow = enum.auto()
     apricot = enum.auto()
-    Turquoise = enum.auto()
+    turquoise = enum.auto()
     silver = enum.auto()
     tangerine = enum.auto()
 	# 연두 산호 하늘 주황 밝은파랑 시안 황토 자홍 분홍 담청 
@@ -63,7 +64,7 @@ colors_rgb[Colors_Name.ivory.value] = [236, 230, 204]
 #colors_rgb[Colors_Name.forsythia.value] = [236, 230, 0]
 colors_rgb[Colors_Name.yellow.value] = [247, 212, 0]
 colors_rgb[Colors_Name.apricot.value] = [251, 206, 177]
-colors_rgb[Colors_Name.Turquoise.value] = [131, 220, 183]
+colors_rgb[Colors_Name.turquoise.value] = [131, 220, 183]
 colors_rgb[Colors_Name.silver.value] = [192, 192, 192]
 colors_rgb[Colors_Name.tangerine.value] = [248, 155, 0]
 colors_rgb[Colors_Name.chartreuse.value] = [129, 193, 71]
@@ -115,11 +116,13 @@ def mouse_callback(event, x, y, flags, param):
             color_diff[i.value] = abs(color_target[0][0][0] - colors_rgb[i.value][0])
             color_diff[i.value] += abs(color_target[0][0][1] - colors_rgb[i.value][1])
             color_diff[i.value] += abs(color_target[0][0][2] - colors_rgb[i.value][2])
-        print (color_diff, color_diff.argmin())
         color = color_diff.argmin()
 
-        print(Colors_Name(color).name+'.mp3')
-        print(colors_rgb[color])
+        m_mpfile = Colors_Name(color).name + ".mp3"
+        print(m_mpfile)
+
+        os.chdir('C:/Users/str92/OneDrive/문서/git/wardrobe/voice/colors')
+        os.system("start %s" % m_mpfile)
 
 img = cv2.imread('color_test_img.jpg', cv2.IMREAD_COLOR)
 cv2.imshow('ImageDisplay', img)
