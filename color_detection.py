@@ -131,6 +131,13 @@ while True:
 
                 m_mpfile = Colors_Name(color).name + ".mp3"
                 print(m_mpfile)
+                '''
+                try:
+                    sound_player_name = "wmplayer.exe"
+                    os.system("taskkill /f /im %s" % sound_player_name)
+                except:
+                    pass
+                '''
                 os.chdir('voice')
                 os.chdir('colors')
                 os.system("start %s" % m_mpfile)

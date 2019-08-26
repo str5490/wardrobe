@@ -9,8 +9,8 @@ except:
 os.chdir('voice')
 os.chdir('colors')
 
-file_name = "black"
-text = "검정색"
+file_name = "dark_blue"
+text = "암청색"
 
 tts = gTTS(text=text, lang='ko')
 m_mpfile = file_name + ".mp3"

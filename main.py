@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+from sklearn.cluster import KMeans
 
 def change_TrackbarValue(l_h, u_h, l_s, u_s, l_v, u_v):
     cv2.setTrackbarPos('lower_h','skin_hsv',l_h)
@@ -89,11 +90,8 @@ while True:
         raw_frame = frame.copy()
 
         #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
-        roi = frame[100:400, 100:400]
+        roi = frame
         
-        #roi 영역을 프레임에 그려준다.
-        cv2.rectangle(frame, (100, 100), (400, 400), (0, 255, 0), 0)
-
         #roi 범위 안의 색영역추출
         hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
@@ -195,12 +193,26 @@ while True:
             for i in range(len(approx)):
                 length_from_center[i] = math.sqrt((approx[i][0][0] - cx)**2 + (approx[i][0][1] - cy)**2)
             farthest_point = np.argmax(length_from_center)
-
+            
             topmost = approx[farthest_point][0]
-            roi2 = raw_frame[100:400, 100:400]
-            rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
-            px = rgbroi[topmost[1] - 2, topmost[0]]
             cv2.circle(roi, (topmost[0], topmost[1] - 2), 4, [0, 100, 100], -1)
+            cv2.rectangle(roi, (topmost[0] - 20, topmost[1] - 45), (topmost[0] + 20, topmost[1] - 5), (0, 255, 0), 0)
+
+            roi2 = raw_frame[topmost[1] - 45:topmost[1] - 5, topmost[0] - 20:topmost[0] + 20]
+            rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
+            #rgbroi = roi2
+            rgbroi = rgbroi.reshape((-1, 3))
+            rgbroi = np.float32(rgbroi)
+            
+            #K-MEANS
+            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+            k = 2
+            ret,label,center = cv2.kmeans(rgbroi,k,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
+            
+            center = np.uint8(center)
+            res = center[label.flatten()]
+            res2 = res.reshape((roi2.shape))
+            px = center[0]
 
             #display corresponding gestures which are in their ranges
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -211,23 +223,21 @@ while True:
                 else:   
                     detect_pointing_finger = True
                     cv2.putText(frame, '1', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
+            elif l == 1:
+                cv2.putText(frame, '2', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
                 #"손을 접어 가리켜주세요" 명령 추가 필요
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-
         if detect_pointing_finger == True:
             frame_write_interval += 1
         else:
             frame_write_interval = 0
 
-        cv2.imshow('mask', mask)
-        cv2.imshow('frame', frame)
-
         #file write 추가
         if frame_write_interval == 20:
             frame_write_interval = 0
             #이미지 저장 추가
-            cv2.imwrite('test.png', raw_frame[100:400, 100:400])
+            cv2.imwrite('test.png', raw_frame)
             text_rgb = ','.join(map(str, px))
             text_rgb += ',1,\n'
             print(text_rgb)
@@ -235,9 +245,13 @@ while True:
             file = open('test.txt', 'w', encoding = 'utf8')
             file.write(text_rgb)
             file.close()
+            
+        cv2.imshow('mask', mask)
+        cv2.imshow('frame', frame)
     except:
         cv2.imshow('frame', frame)
         pass
+        
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
         break
