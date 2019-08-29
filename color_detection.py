@@ -1,7 +1,8 @@
-import os
+import os, sys
 import decimal
 import enum
 import numpy as np
+from pygame import mixer
 
 #===============================================================#
 # color reference                                               #
@@ -105,6 +106,15 @@ colors_rgb[Colors_Name.navy.value] = [0, 0, 128]
 colors_rgb[Colors_Name.black.value] = [0, 0, 0]
 #===============================================================#
 
+mixer.init()
+
+os.chdir('voice')
+APP_FOLDER = os.path.dirname(os.path.realpath(sys.argv[0]))
+os.chdir('..')
+
+colors_file_path = os.path.join(APP_FOLDER, 'colors')
+notices_file_path = os.path.join(APP_FOLDER, 'notices')
+
 filename = 'test.txt'
 color_diff = np.zeros([color_num], dtype = int)
 
@@ -112,11 +122,17 @@ while True:
     file = open(filename, 'r', encoding="utf8")
     text_rgb = file.read()
     file.close()
-
+    mp3_play = False
+    
     split_data = text_rgb.split(',')
 	# 유효 데이터인지 확인하고 동작하기
-    if len(split_data) >= 4 and split_data[3].isdigit() == 1 and decimal.Decimal(split_data[3]) == 1:
-        if split_data[0].isdigit() == 1 and split_data[1].isdigit() == 1 and split_data[2].isdigit() == 1 :
+    if len(split_data) >= 5 and split_data[4].isdigit() == 1 and decimal.Decimal(split_data[4]) == 1:
+        if split_data[3].isdigit() == 1 and decimal.Decimal(split_data[3]) > 0:
+            m_mpfile = split_data[3] + ".mp3"
+            full_path = os.path.join(notices_file_path, m_mpfile)
+            print(m_mpfile)
+            mp3_play = True
+        elif split_data[0].isdigit() == 1 and split_data[1].isdigit() == 1 and split_data[2].isdigit() == 1 :
             rgb = list(map(int, split_data[0:3]))
             if (rgb[0] >= 0 and rgb[0] <= 255 and
                 rgb[1] >= 0 and rgb[1] <= 255 and
@@ -130,24 +146,18 @@ while True:
                 color = color_diff.argmin()
 
                 m_mpfile = Colors_Name(color).name + ".mp3"
+                full_path = os.path.join(colors_file_path, m_mpfile)
                 print(m_mpfile)
-                '''
-                try:
-                    sound_player_name = "wmplayer.exe"
-                    os.system("taskkill /f /im %s" % sound_player_name)
-                except:
-                    pass
-                '''
-                os.chdir('voice')
-                os.chdir('colors')
-                os.system("start %s" % m_mpfile)
- 
-                os.chdir('..')
-                os.chdir('..')
-                file = open(filename, 'w', encoding="utf8")
-                file.write('0,0,0,0,\n')
-                file.close()
+                mp3_play = True
             else :
                 print('wrong data')
         else :
             print('wrong data')
+        
+    if mp3_play == True:
+        file = open(filename, 'w', encoding="utf8")
+        file.write('0,0,0,0,\n')
+        file.close()
+    
+        mixer.music.load(full_path)
+        mixer.music.play()

@@ -7,10 +7,10 @@ try:
 except:
     pass
 os.chdir('voice')
-os.chdir('colors')
+os.chdir('notice')
 
-file_name = "dark_blue"
-text = "암청색"
+file_name = "3"
+text = "손을 접어 가리켜주세요"
 
 tts = gTTS(text=text, lang='ko')
 m_mpfile = file_name + ".mp3"

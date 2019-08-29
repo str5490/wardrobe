@@ -148,10 +148,12 @@ while True:
 
         # 깊이의 개수
         l = 0
+        notice = 0
 
         detect_pointing_finger = False
         if areacnt < 2000:
             #"좀 더 안쪽을 가리켜주세요" 명령 추가 필요
+            notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         else:
             #cv2.convexityDefects 컨벡스 결함
@@ -219,6 +221,7 @@ while True:
             if l == 0:
                 if arearatio < 12:
                     #"손가락을 펴주세요" 명령 추가 필요
+                    notice = 2
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
                     detect_pointing_finger = True
@@ -227,18 +230,34 @@ while True:
                 cv2.putText(frame, '2', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
                 #"손을 접어 가리켜주세요" 명령 추가 필요
+                notice = 3
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         if detect_pointing_finger == True:
             frame_write_interval += 1
         else:
             frame_write_interval = 0
+        
+        if notice > 0:
+            notice_interval += 1
+        else:
+            notice_interval = 0
 
+        if notice_interval == 60:
+            notice_interval = 0
+            text = '0,0,0,' + str(notice) + ',1,\n'
+            print(text)
+
+            file = open('test.txt', 'w', encoding = 'utf8')
+            file.write(text)
+            file.close()
+        
         #file write 추가
         if frame_write_interval == 20:
             frame_write_interval = 0
             #이미지 저장 추가
             cv2.imwrite('test.png', raw_frame)
             text_rgb = ','.join(map(str, px))
+            text_rgb += ',' + str(notice)
             text_rgb += ',1,\n'
             print(text_rgb)
 
