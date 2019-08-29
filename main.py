@@ -74,9 +74,11 @@ def mouse_callback(event, x, y, flags, param):
                 u_skinv = hsv[2]
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
-cap = cv2.VideoCapture(0)
+cam_default = cam_num = 1
+cap = cv2.VideoCapture(cam_num)
 
 frame_write_interval = 0
+cam_change_interval = 0
 
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
@@ -149,11 +151,13 @@ while True:
         # 깊이의 개수
         l = 0
         notice = 0
-
+        detect_cam_change_finger = False
         detect_pointing_finger = False
+        
         if areacnt < 2000:
             #"좀 더 안쪽을 가리켜주세요" 명령 추가 필요
-            notice = 1
+            if areacnt > 100:
+                notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         else:
             #cv2.convexityDefects 컨벡스 결함
@@ -226,45 +230,60 @@ while True:
                 else:   
                     detect_pointing_finger = True
                     cv2.putText(frame, '1', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-            elif l == 1:
+            elif l == 1:  #손가락 2개일 때 캠 전환
+                detect_cam_change_finger = True
                 cv2.putText(frame, '2', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
+            elif cam_num != cam_default and l == 2:  #손가락 3개일 때 기존 캠으로 돌아옴 --> 패턴 음성출력 후 돌아 오는걸로 수정필요
+                detect_cam_change_finger = True
+                cv2.putText(frame, '3', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
                 #"손을 접어 가리켜주세요" 명령 추가 필요
                 notice = 3
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-        if detect_pointing_finger == True:
-            frame_write_interval += 1
-        else:
-            frame_write_interval = 0
         
+        if detect_cam_change_finger == True:
+            cam_change_interval += 1
+            if cam_change_interval == 40:
+                cam_change_interval = 0
+                cam_num ^= 1
+                cap = cv2.VideoCapture(cam_num)
+                if cam_num != cam_default:
+                    notice = 4
+        else:
+            cam_change_interval = 0
+
         if notice > 0:
             notice_interval += 1
+            if notice_interval == 60:
+                notice_interval = 0
+                text = '0,0,0,' + str(notice) + ',1,\n'
+                print(text)
+
+                file = open('test.txt', 'w', encoding = 'utf8')
+                file.write(text)
+                file.close()
         else:
             notice_interval = 0
 
-        if notice_interval == 60:
-            notice_interval = 0
-            text = '0,0,0,' + str(notice) + ',1,\n'
-            print(text)
+        if detect_pointing_finger == True:
+            frame_write_interval += 1
+            if frame_write_interval == 20:
+                frame_write_interval = 0
+                #이미지 저장 추가
+                cv2.imwrite('test.png', raw_frame)
+                
+                if cam_num == cam_default:
+                    text_rgb = ','.join(map(str, px))
+                    text_rgb += ',' + str(notice)
+                    text_rgb += ',1,\n'
+                    print(text_rgb)
 
-            file = open('test.txt', 'w', encoding = 'utf8')
-            file.write(text)
-            file.close()
-        
-        #file write 추가
-        if frame_write_interval == 20:
+                    file = open('test.txt', 'w', encoding = 'utf8')
+                    file.write(text_rgb)
+                    file.close()
+        else:
             frame_write_interval = 0
-            #이미지 저장 추가
-            cv2.imwrite('test.png', raw_frame)
-            text_rgb = ','.join(map(str, px))
-            text_rgb += ',' + str(notice)
-            text_rgb += ',1,\n'
-            print(text_rgb)
 
-            file = open('test.txt', 'w', encoding = 'utf8')
-            file.write(text_rgb)
-            file.close()
-            
         cv2.imshow('mask', mask)
         cv2.imshow('frame', frame)
     except:
