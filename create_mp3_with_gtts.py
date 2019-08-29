@@ -9,8 +9,8 @@ except:
 os.chdir('voice')
 os.chdir('notices')
 
-file_name = "4"
-text = "옷을 꺼내주세요"
+file_name = "5"
+text = "옷을 넣어주세요"
 
 tts = gTTS(text=text, lang='ko')
 m_mpfile = file_name + ".mp3"

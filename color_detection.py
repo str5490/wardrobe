@@ -115,7 +115,7 @@ os.chdir('..')
 colors_file_path = os.path.join(APP_FOLDER, 'colors')
 notices_file_path = os.path.join(APP_FOLDER, 'notices')
 
-filename = 'test.txt'
+filename = 'color_detection_play.txt'
 color_diff = np.zeros([color_num], dtype = int)
 
 while True:
@@ -156,7 +156,7 @@ while True:
         
     if mp3_play == True:
         file = open(filename, 'w', encoding="utf8")
-        file.write('0,0,0,0,\n')
+        file.write('0,0,0,0,0,\n')
         file.close()
     
         mixer.music.load(full_path)

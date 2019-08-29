@@ -75,10 +75,13 @@ def mouse_callback(event, x, y, flags, param):
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
 cam_default = cam_num = 1
-cap = cv2.VideoCapture(cam_num)
+cap = cv2.VideoCapture(cam_default)
+cap2 = cv2.VideoCapture(cam_num^1)
 
+prev_notice = 0
 frame_write_interval = 0
 cam_change_interval = 0
+text_file_name = 'color_detection_play.txt'
 
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
@@ -87,7 +90,14 @@ while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
 
-        ret, frame = cap.read()
+        _, frame1 = cap.read()
+        _, frame2 = cap2.read()
+        
+        if cam_num == cam_default:
+            frame = frame1
+        else:
+            frame = frame2
+        
         frame = cv2.flip(frame, 1)
         raw_frame = frame.copy()
 
@@ -155,7 +165,7 @@ while True:
         detect_pointing_finger = False
         
         if areacnt < 2000:
-            #"좀 더 안쪽을 가리켜주세요" 명령 추가 필요
+            #"좀 더 안쪽을 가리켜주세요" 명령 추가
             if areacnt > 100:
                 notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
@@ -224,7 +234,7 @@ while True:
             font = cv2.FONT_HERSHEY_SIMPLEX
             if l == 0:
                 if arearatio < 12:
-                    #"손가락을 펴주세요" 명령 추가 필요
+                    #"손가락을 펴주세요" 명령 추가
                     notice = 2
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
@@ -237,37 +247,41 @@ while True:
                 detect_cam_change_finger = True
                 cv2.putText(frame, '3', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
-                #"손을 접어 가리켜주세요" 명령 추가 필요
+                #"손을 접어 가리켜주세요" 명령 추가
                 notice = 3
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         
         if detect_cam_change_finger == True:
             cam_change_interval += 1
-            if cam_change_interval == 40:
+            if cam_change_interval >= 40:
                 cam_change_interval = 0
                 cam_num ^= 1
-                cap = cv2.VideoCapture(cam_num)
                 if cam_num != cam_default:
                     notice = 4
+                    notice_interval = 40
         else:
             cam_change_interval = 0
 
-        if notice > 0:
+        
+        if notice != prev_notice:
             notice_interval += 1
-            if notice_interval == 60:
+            if notice_interval >= 40:
                 notice_interval = 0
-                text = '0,0,0,' + str(notice) + ',1,\n'
-                print(text)
+                prev_notice = notice
+                
+                if notice > 0:
+                    text = '0,0,0,' + str(notice) + ',1,\n'
+                    print(text)
 
-                file = open('test.txt', 'w', encoding = 'utf8')
-                file.write(text)
-                file.close()
+                    file = open(text_file_name, 'w', encoding = 'utf8')
+                    file.write(text)
+                    file.close()
         else:
             notice_interval = 0
 
         if detect_pointing_finger == True:
             frame_write_interval += 1
-            if frame_write_interval == 20:
+            if frame_write_interval >= 20:
                 frame_write_interval = 0
                 #이미지 저장 추가
                 cv2.imwrite('test.png', raw_frame)
@@ -278,17 +292,17 @@ while True:
                     text_rgb += ',1,\n'
                     print(text_rgb)
 
-                    file = open('test.txt', 'w', encoding = 'utf8')
+                    file = open(text_file_name, 'w', encoding = 'utf8')
                     file.write(text_rgb)
                     file.close()
         else:
             frame_write_interval = 0
 
         cv2.imshow('mask', mask)
-        cv2.imshow('frame', frame)
     except:
-        cv2.imshow('frame', frame)
         pass
+        
+    cv2.imshow('frame', frame)
         
     k = cv2.waitKey(5) & 0xFF
     if k == 27:
