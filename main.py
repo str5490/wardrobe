@@ -75,7 +75,7 @@ def mouse_callback(event, x, y, flags, param):
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
 cam_default = cam_num = 1
-cap = cv2.VideoCapture(cam_default)
+cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
 
 prev_notice = 0
@@ -90,7 +90,7 @@ while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
 
-        _, frame1 = cap.read()
+        _, frame1 = cap1.read()
         _, frame2 = cap2.read()
         
         if cam_num == cam_default:
@@ -101,7 +101,8 @@ while True:
         frame = cv2.flip(frame, 1)
         raw_frame = frame.copy()
 
-        #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
+        #손인식을 할 범위의 사이즈 (100,100),(400,400) 사각형의 모서리
+        #roi = frame[100:400, 100:400]
         roi = frame
         
         #roi 범위 안의 색영역추출
@@ -309,4 +310,5 @@ while True:
         break
 
 cv2.destroyAllWindows()
-cap.release()
+cap1.release()
+cap2.release()
