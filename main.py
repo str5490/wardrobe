@@ -78,6 +78,8 @@ cam_default = cam_num = 1
 cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
 
+color_detect_rect = np.zeros(4)
+prev_rect_x = 0
 prev_notice = 0
 frame_write_interval = 0
 cam_change_interval = 0
@@ -212,12 +214,18 @@ while True:
             farthest_point = np.argmax(length_from_center)
             
             topmost = approx[farthest_point][0]
+            color_detect_rect = [topmost[0] - 20, topmost[1] - 45, topmost[0] + 20, topmost[1] - 5]
             cv2.circle(roi, (topmost[0], topmost[1] - 2), 4, [0, 100, 100], -1)
-            cv2.rectangle(roi, (topmost[0] - 20, topmost[1] - 45), (topmost[0] + 20, topmost[1] - 5), (0, 255, 0), 0)
-
+            cv2.rectangle(roi, (color_detect_rect[0], color_detect_rect[1]), (color_detect_rect[2], color_detect_rect[3]), (0, 255, 0), 0)
+            
+            hand_moving = False
+            if abs(prev_rect_x - color_detect_rect[2]) > 7:
+                print (abs(prev_rect_x - color_detect_rect[2]))
+                hand_moving = True
+            prev_rect_x = color_detect_rect[2]
+            
             roi2 = raw_frame[topmost[1] - 45:topmost[1] - 5, topmost[0] - 20:topmost[0] + 20]
             rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
-            #rgbroi = roi2
             rgbroi = rgbroi.reshape((-1, 3))
             rgbroi = np.float32(rgbroi)
             
@@ -279,7 +287,9 @@ while True:
                     file.close()
         else:
             notice_interval = 0
-
+        
+        if hand_moving == True:
+            frame_write_interval = 0
         if detect_pointing_finger == True:
             frame_write_interval += 1
             if frame_write_interval >= 20:
