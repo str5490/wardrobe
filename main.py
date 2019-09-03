@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
 import math
+import os, sys
 from sklearn.cluster import KMeans
+from playsound import playsound
+import asyncio
+
 
 def change_TrackbarValue(l_h, u_h, l_s, u_s, l_v, u_v):
     cv2.setTrackbarPos('lower_h','skin_hsv',l_h)
@@ -14,6 +18,7 @@ def change_TrackbarValue(l_h, u_h, l_s, u_s, l_v, u_v):
 
 def nothing(x):
     pass
+
 
 (l_skinh, u_skinh) = (0, 20)
 (l_skins, u_skins) = (105, 255)
@@ -74,14 +79,27 @@ def mouse_callback(event, x, y, flags, param):
                 u_skinv = hsv[2]
         change_TrackbarValue(l_skinh, u_skinh, l_skins, u_skins, l_skinv, u_skinv)
 
+def execute():
+    rtn = os.system(exeCode)
+    os.remove('test.png')
+
+def playsounds(filePath):
+    playsound(filePath)
+
+
 cam_default = cam_num = 1
-cap = cv2.VideoCapture(cam_default)
+cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
 
+color_detect_rect = np.zeros(4)
+prev_rect_x = 0
 prev_notice = 0
 frame_write_interval = 0
 cam_change_interval = 0
+cam_save_interval = 0
 text_file_name = 'color_detection_play.txt'
+exeCode = "python classify.py --model fashion.model --labelbin mlb.pickle --image test.png"
+filePath = 'voice/notices/'
 
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
@@ -90,18 +108,33 @@ while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
 
-        _, frame1 = cap.read()
+        _, frame1 = cap1.read()
         _, frame2 = cap2.read()
         
         if cam_num == cam_default:
             frame = frame1
         else:
             frame = frame2
+            print(cam_save_interval)
+            cam_save_interval += 1
+            if cam_save_interval >= 300:
+                # playsounds('voice/notices/6.mp3')
+                #TODO
+                #비동기처리
+                playsound('voice/notices/6.mp3')
+                # loop = asyncio.get_event_loop() 
+                # loop.run_until_complete(playsounds('voice/notices/6.mp3'))
+                # loop.close()     
+                cv2.imwrite('test.png', raw_frame)
+                cam_num ^= 1
+                cam_save_interval = 0
+                
         
         frame = cv2.flip(frame, 1)
         raw_frame = frame.copy()
 
-        #손인식을 할 범위의 사이즈 (100,100),(400,500) 사각형의 모서리
+        #손인식을 할 범위의 사이즈 (100,100),(400,400) 사각형의 모서리
+        #roi = frame[100:400, 100:400]
         roi = frame
         
         #roi 범위 안의 색영역추출
@@ -166,6 +199,7 @@ while True:
         
         if areacnt < 2000:
             #"좀 더 안쪽을 가리켜주세요" 명령 추가
+            # playsounds("{}1.mp3".format(filePath))
             if areacnt > 100:
                 notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
@@ -211,12 +245,18 @@ while True:
             farthest_point = np.argmax(length_from_center)
             
             topmost = approx[farthest_point][0]
+            color_detect_rect = [topmost[0] - 20, topmost[1] - 45, topmost[0] + 20, topmost[1] - 5]
             cv2.circle(roi, (topmost[0], topmost[1] - 2), 4, [0, 100, 100], -1)
-            cv2.rectangle(roi, (topmost[0] - 20, topmost[1] - 45), (topmost[0] + 20, topmost[1] - 5), (0, 255, 0), 0)
-
+            cv2.rectangle(roi, (color_detect_rect[0], color_detect_rect[1]), (color_detect_rect[2], color_detect_rect[3]), (0, 255, 0), 0)
+            
+            hand_moving = False
+            if abs(prev_rect_x - color_detect_rect[2]) > 7:
+                print (abs(prev_rect_x - color_detect_rect[2]))
+                hand_moving = True
+            prev_rect_x = color_detect_rect[2]
+            
             roi2 = raw_frame[topmost[1] - 45:topmost[1] - 5, topmost[0] - 20:topmost[0] + 20]
             rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
-            #rgbroi = roi2
             rgbroi = rgbroi.reshape((-1, 3))
             rgbroi = np.float32(rgbroi)
             
@@ -235,33 +275,33 @@ while True:
             if l == 0:
                 if arearatio < 12:
                     #"손가락을 펴주세요" 명령 추가
-                    notice = 2
+                    # playsounds("{}2.mp3".format(filePath))
+                    # notice = 2
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
                     detect_pointing_finger = True
                     cv2.putText(frame, '1', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-            elif l == 1:  #손가락 2개일 때 캠 전환
+            elif cam_num == cam_default and l == 1:  #손가락 2개일 때 캠 전환
                 detect_cam_change_finger = True
                 cv2.putText(frame, '2', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-            elif cam_num != cam_default and l == 2:  #손가락 3개일 때 기존 캠으로 돌아옴 --> 패턴 음성출력 후 돌아 오는걸로 수정필요
+            elif cam_num == cam_default and l == 2:  #손가락 3개일 때 기존 캠으로 돌아옴 --> 패턴 음성출력 후 돌아 오는걸로 수정필요
                 detect_cam_change_finger = True
                 cv2.putText(frame, '3', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
+                # playsounds("{}3.mp3".format(filePath))
                 #"손을 접어 가리켜주세요" 명령 추가
-                notice = 3
+                # notice = 3
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-        
+
         if detect_cam_change_finger == True:
             cam_change_interval += 1
             if cam_change_interval >= 40:
                 cam_change_interval = 0
                 cam_num ^= 1
                 if cam_num != cam_default:
-                    notice = 4
+                    # playsounds("{}4.mp3".format(filePath))
+                    # notice = 4
                     notice_interval = 40
-        else:
-            cam_change_interval = 0
-
         
         if notice != prev_notice:
             notice_interval += 1
@@ -278,13 +318,13 @@ while True:
                     file.close()
         else:
             notice_interval = 0
-
+        
+        if hand_moving == True:
+            frame_write_interval = 0
         if detect_pointing_finger == True:
             frame_write_interval += 1
             if frame_write_interval >= 20:
                 frame_write_interval = 0
-                #이미지 저장 추가
-                cv2.imwrite('test.png', raw_frame)
                 
                 if cam_num == cam_default:
                     text_rgb = ','.join(map(str, px))
@@ -297,6 +337,9 @@ while True:
                     file.close()
         else:
             frame_write_interval = 0
+        
+        if os.path.exists("test.png"):
+            execute()
 
         cv2.imshow('mask', mask)
     except:
@@ -309,4 +352,5 @@ while True:
         break
 
 cv2.destroyAllWindows()
-cap.release()
+cap1.release()
+cap2.release()
