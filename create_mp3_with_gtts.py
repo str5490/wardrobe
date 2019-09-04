@@ -10,7 +10,7 @@ os.chdir('voice')
 os.chdir('notices')
 
 file_name = "5"
-text = "옷을 넣어주세요"
+text = ""
 
 tts = gTTS(text=text, lang='ko')
 m_mpfile = file_name + ".mp3"

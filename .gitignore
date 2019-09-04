@@ -9,3 +9,9 @@ venv.bak/
 
 # Visual Studio
 .vs/
+
+# inWardrobe
+fashion.model
+test.py
+test.png
+mlb.pickle
