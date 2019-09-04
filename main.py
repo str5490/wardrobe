@@ -89,6 +89,10 @@ def playsounds(filePath):
     #     winsound.PlaySound(filePath, winsound.SND_FILENAME)
     #     winsound.PlaySound(None, winsound.SND_FILENAME)
 
+
+# 비동기 -> playsounds(filePath)
+# 동기 -> playsound(filePath)
+
 cam_default = cam_num = 1
 cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
