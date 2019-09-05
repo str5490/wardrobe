@@ -61,10 +61,10 @@ for (i, j) in enumerate(idxs):
 for (label, p) in zip(mlb.classes_, proba):
 	print("{}: {:.2f}%".format(label, p * 100))
 
-playsound("{}select.mp3".format(filePath)) # 선택하신 옷은
+playsound("{}select.wav".format(filePath)) # 선택하신 옷은
 # playsound(filePath + label + '.mp3') # 무늬
-playsound("{}default.mp3".format(filePath)) # 무늬
-playsound("{}end.mp3".format(filePath)) # 옷입니다.
+playsound("{}default.wav".format(filePath)) # 무늬
+playsound("{}end.wav".format(filePath)) # 옷입니다.
 
 # show the output image
 cv2.imshow("Output", output)

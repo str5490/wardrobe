@@ -4,8 +4,7 @@ import math
 import os, sys
 from sklearn.cluster import KMeans
 from playsound import playsound
-import asyncio
-
+import winsound
 
 def change_TrackbarValue(l_h, u_h, l_s, u_s, l_v, u_v):
     cv2.setTrackbarPos('lower_h','skin_hsv',l_h)
@@ -84,8 +83,15 @@ def execute():
     os.remove('test.png')
 
 def playsounds(filePath):
-    playsound(filePath)
+    # if way == 1: # 비동기
+    winsound.PlaySound(filePath, winsound.SND_ASYNC | winsound.SND_ALIAS )
+    # else: # 동기
+    #     winsound.PlaySound(filePath, winsound.SND_FILENAME)
+    #     winsound.PlaySound(None, winsound.SND_FILENAME)
 
+
+# 비동기 -> playsounds(filePath)
+# 동기 -> playsound(filePath)
 
 cam_default = cam_num = 1
 cap1 = cv2.VideoCapture(cam_default)
@@ -104,6 +110,8 @@ filePath = 'voice/notices/'
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
 
+playsound("{}notice.wav".format(filePath))
+
 while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
           #therefore this try error statement
@@ -118,13 +126,8 @@ while True:
             print(cam_save_interval)
             cam_save_interval += 1
             if cam_save_interval >= 300:
-                # playsounds('voice/notices/6.mp3')
-                #TODO
-                #비동기처리
-                playsound('voice/notices/6.mp3')
-                # loop = asyncio.get_event_loop() 
-                # loop.run_until_complete(playsounds('voice/notices/6.mp3'))
-                # loop.close()     
+                # 사진찍을게요
+                playsounds('voice/notices/6.wav')
                 cv2.imwrite('test.png', raw_frame)
                 cam_num ^= 1
                 cam_save_interval = 0
@@ -199,7 +202,7 @@ while True:
         
         if areacnt < 2000:
             #"좀 더 안쪽을 가리켜주세요" 명령 추가
-            # playsounds("{}1.mp3".format(filePath))
+            # playsounds("{}1.wav".format(filePath))
             if areacnt > 100:
                 notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
@@ -274,8 +277,6 @@ while True:
             font = cv2.FONT_HERSHEY_SIMPLEX
             if l == 0:
                 if arearatio < 12:
-                    #"손가락을 펴주세요" 명령 추가
-                    # playsounds("{}2.mp3".format(filePath))
                     # notice = 2
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
@@ -288,9 +289,7 @@ while True:
                 detect_cam_change_finger = True
                 cv2.putText(frame, '3', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
-                # playsounds("{}3.mp3".format(filePath))
-                #"손을 접어 가리켜주세요" 명령 추가
-                # notice = 3
+                # playsounds(1,"{}hatsan.wav".format(filePath)) # 손가락 두개를 펴서 저에게 보여주세요
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
 
         if detect_cam_change_finger == True:
@@ -299,7 +298,7 @@ while True:
                 cam_change_interval = 0
                 cam_num ^= 1
                 if cam_num != cam_default:
-                    # playsounds("{}4.mp3".format(filePath))
+                    playsounds("{}4.wav".format(filePath)) # 옷꺼내세요
                     # notice = 4
                     notice_interval = 40
         
