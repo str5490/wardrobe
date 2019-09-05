@@ -93,7 +93,7 @@ def playsounds(filePath):
 # 비동기 -> playsounds(filePath)
 # 동기 -> playsound(filePath)
 
-cam_default = cam_num = 1
+cam_default = cam_num = 0
 cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
 
@@ -110,7 +110,7 @@ filePath = 'voice/notices/'
 cv2.namedWindow('frame')
 cv2.setMouseCallback('frame', mouse_callback)
 
-playsound("{}notice.wav".format(filePath))
+playsounds("{}notice.wav".format(filePath))
 
 while True:
     try:  #an error comes if it does not find anything in window as it cannot find contour of max area
@@ -119,6 +119,7 @@ while True:
         _, frame1 = cap1.read()
         _, frame2 = cap2.read()
         
+        frame = frame1
         if cam_num == cam_default:
             frame = frame1
         else:
@@ -127,12 +128,12 @@ while True:
             cam_save_interval += 1
             if cam_save_interval >= 300:
                 # 사진찍을게요
-                playsounds('voice/notices/6.wav')
+                # playsounds('voice/notices/6.wav')
+                notice = 6
+                notice_interval = 40
                 cv2.imwrite('test.png', raw_frame)
                 cam_num ^= 1
                 cam_save_interval = 0
-                
-        
         frame = cv2.flip(frame, 1)
         raw_frame = frame.copy()
 
@@ -203,7 +204,7 @@ while True:
         if areacnt < 2000:
             #"좀 더 안쪽을 가리켜주세요" 명령 추가
             # playsounds("{}1.wav".format(filePath))
-            if areacnt > 100:
+            if cam_num == cam_default and areacnt > 100:
                 notice = 1
             cv2.putText(frame, 'Put hand in the box', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
         else:
@@ -258,7 +259,7 @@ while True:
                 hand_moving = True
             prev_rect_x = color_detect_rect[2]
             
-            roi2 = raw_frame[topmost[1] - 45:topmost[1] - 5, topmost[0] - 20:topmost[0] + 20]
+            roi2 = raw_frame[color_detect_rect[1]:color_detect_rect[3], color_detect_rect[0]:color_detect_rect[2]]
             rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
             rgbroi = rgbroi.reshape((-1, 3))
             rgbroi = np.float32(rgbroi)
@@ -277,7 +278,8 @@ while True:
             font = cv2.FONT_HERSHEY_SIMPLEX
             if l == 0:
                 if arearatio < 12:
-                    # notice = 2
+                    if cam_num == cam_default :
+                        notice = 2
                     cv2.putText(frame, '0', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
                 else:   
                     detect_pointing_finger = True
@@ -285,10 +287,12 @@ while True:
             elif cam_num == cam_default and l == 1:  #손가락 2개일 때 캠 전환
                 detect_cam_change_finger = True
                 cv2.putText(frame, '2', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
-            elif cam_num == cam_default and l == 2:  #손가락 3개일 때 기존 캠으로 돌아옴 --> 패턴 음성출력 후 돌아 오는걸로 수정필요
+            elif cam_num != cam_default and l == 2:  #손가락 3개일 때 기존 캠으로 돌아옴 --> 패턴 음성출력 후 돌아 오는걸로 수정필요
                 detect_cam_change_finger = True
                 cv2.putText(frame, '3', (0, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
             else :
+                if cam_num == cam_default :
+                    notice = 5
                 # playsounds(1,"{}hatsan.wav".format(filePath)) # 손가락 두개를 펴서 저에게 보여주세요
                 cv2.putText(frame, 'reposition', (10, 50), font, 2, (0, 0, 255), 3, cv2.LINE_AA)
 
@@ -297,27 +301,22 @@ while True:
             if cam_change_interval >= 40:
                 cam_change_interval = 0
                 cam_num ^= 1
+                print('cam_num = ',cam_num)
                 if cam_num != cam_default:
-                    playsounds("{}4.wav".format(filePath)) # 옷꺼내세요
-                    # notice = 4
+                    #playsounds("{}4.wav".format(filePath)) # 옷꺼내세요
+                    notice = 4
                     notice_interval = 40
         
         if notice != prev_notice:
             notice_interval += 1
-            if notice_interval >= 40:
-                notice_interval = 0
-                prev_notice = notice
-                
-                if notice > 0:
-                    text = '0,0,0,' + str(notice) + ',1,\n'
-                    print(text)
-
-                    file = open(text_file_name, 'w', encoding = 'utf8')
-                    file.write(text)
-                    file.close()
         else:
             notice_interval = 0
-        
+        if notice_interval >= 40:
+            notice_interval = 0
+            prev_notice = notice
+            if notice > 0:
+                playsounds(filePath + str(notice) + '.wav')
+
         if hand_moving == True:
             frame_write_interval = 0
         if detect_pointing_finger == True:
