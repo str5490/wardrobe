@@ -95,8 +95,7 @@ def playsounds(filePath):
 
 cam_default = cam_num = 0
 cap1 = cv2.VideoCapture(cam_default)
-# cap2 = cv2.VideoCapture(cam_num^1)
-cap2 = cap1
+cap2 = cv2.VideoCapture(cam_num^1)
 
 color_detect_rect = np.zeros(4)
 prev_rect_x = 0
