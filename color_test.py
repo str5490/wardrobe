@@ -94,7 +94,7 @@ def playsounds(filePath):
 # 비동기 -> playsounds(filePath)
 # 동기 -> playsound(filePath)
 
-cam_default = cam_num = 1
+cam_default = cam_num = 0
 cap1 = cv2.VideoCapture(cam_default)
 cap2 = cv2.VideoCapture(cam_num^1)
 
@@ -288,7 +288,7 @@ while True:
                 farthest_point = np.argmax(length_from_center)
                 
                 topmost = approx[farthest_point][0]
-                color_detect_rect = [topmost[0] - 20, topmost[1] - 100, topmost[0] + 20, topmost[1] - 5]
+                color_detect_rect = [topmost[0] - 20, topmost[1] - 45, topmost[0] + 20, topmost[1] - 5]
                 cv2.circle(roi, (topmost[0], topmost[1] - 2), 4, [0, 100, 100], -1)
                 cv2.rectangle(roi, (color_detect_rect[0], color_detect_rect[1]), (color_detect_rect[2], color_detect_rect[3]), (0, 255, 0), 0)
 
@@ -342,7 +342,6 @@ while True:
                     sleep(0.3)
                     
                     roi2 = color_frame[color_detect_rect[1]:color_detect_rect[3], color_detect_rect[0]:color_detect_rect[2]]
-                    # roi2 = color_frame
                     rgbroi = cv2.cvtColor(roi2, cv2.COLOR_BGR2RGB)
                     rgbroi = rgbroi.reshape((-1, 3))
                     rgbroi = np.float32(rgbroi)
